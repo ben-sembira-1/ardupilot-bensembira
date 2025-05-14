@@ -163,10 +163,9 @@ private:
     static uint32_t last_check_ms;
 };
 
-enum class SROption : int16_t
+enum class Option : uint16_t
 {
-    None = 0,
-    MAVLINK2_SIGNING = (1U << 0),
+    MAVLINK2_SIGNING_DISABLED = (1U << 0),
 };
 
 ///
@@ -519,8 +518,8 @@ protected:
     void handle_request_data_stream(const mavlink_message_t &msg);
 
     AP_Int16 options;
-    bool option_enabled(SROption option) const {
-        return options & static_cast<int16_t>(option);
+    bool option_enabled(Option option) const {
+        return options & static_cast<uint16_t>(option);
     }
 
     virtual void handle_command_ack(const mavlink_message_t &msg);
