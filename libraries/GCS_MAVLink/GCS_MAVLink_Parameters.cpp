@@ -212,7 +212,7 @@ const AP_Param::GroupInfo GCS_MAVLINK::var_info[] = {
     // @Description: Bitmask for configuring this telemetry channel. For having effect on all channels, set the relevant mask in all MAVx_OPTIONS parameters. Keep in mind that part of the flags may require a reboot to take action.
     // @RebootRequired: True
     // @User: Standard
-    // @Bitmask: 0:Enable MavLink2 signing (Reboot required)
+    // @Bitmask: 0:Accept unsigned MAVLink2 messages
     AP_GROUPINFO("_OPTIONS",   20, GCS_MAVLINK, options, 0),
     AP_GROUPEND
 };
