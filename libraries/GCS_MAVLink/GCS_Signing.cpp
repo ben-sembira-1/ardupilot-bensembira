@@ -106,25 +106,45 @@ void GCS_MAVLINK::handle_setup_signing(const mavlink_message_t &msg) const
  */
 extern "C" {
 
-static const uint32_t accept_list[] = {
-    MAVLINK_MSG_ID_RADIO_STATUS,
-    MAVLINK_MSG_ID_RADIO
-};
-    
-static bool accept_unsigned_callback(const mavlink_status_t *status, uint32_t msgId)
-{
-    if (status == mavlink_get_channel_status(MAVLINK_COMM_0)) {
-        // always accept channel 0, assumed to be secure channel. This
-        // is USB on ChibiOS boards
-        return true;
+    static const uint32_t accept_list[] = {
+        MAVLINK_MSG_ID_RADIO_STATUS,
+        MAVLINK_MSG_ID_RADIO
+    };
+
+    // Function to accept all messages
+    static bool _accept_all_unsigned_callback(const mavlink_status_t *status, uint32_t msgId)
+    {
+        return true;  // Always accepts messages
     }
-    for (uint8_t i=0; i<ARRAY_SIZE(accept_list); i++) {
-        if (accept_list[i] == msgId) {
+
+    // Function to accept based on channel or msgId
+    static bool _accept_unsigned_callback(const mavlink_status_t *status, uint32_t msgId)
+    {
+        if (status == mavlink_get_channel_status(MAVLINK_COMM_0)) {
+            // always accept channel 0, assumed to be secure channel. This
+            // is USB on ChibiOS boards
             return true;
         }
+        for (uint8_t i = 0; i < ARRAY_SIZE(accept_list); i++) {
+            if (accept_list[i] == msgId) {
+                return true;
+            }
+        }
+        return false;
     }
-    return false;
-}
+        
+    // TODO: this is the important function
+    typedef bool (*unsigned_accept_cb_t)(const mavlink_status_t *status, uint32_t msgId);
+    
+    static unsigned_accept_cb_t generate_accept_unsigned_callback(bool accept_all)
+    {
+        // Based on 'accept_all', return a different function pointer
+        if (accept_all) {
+            return _accept_all_unsigned_callback;
+        } else {
+            return _accept_unsigned_callback;
+        }
+    }
 }
 
 /*
@@ -133,7 +153,7 @@ static bool accept_unsigned_callback(const mavlink_status_t *status, uint32_t ms
 void GCS_MAVLINK::load_signing_key(void)
 {
     struct SigningKey key;
-    if (option_enabled(Option::MAVLINK2_SIGNING_DISABLED) || !signing_key_load(key))
+    if (!signing_key_load(key))
     {
         return;
     }
@@ -144,7 +164,7 @@ void GCS_MAVLINK::load_signing_key(void)
     // prevents a window for replay attacks
     signing.timestamp = key.timestamp + 60UL * 100UL * 1000UL;
     signing.flags = MAVLINK_SIGNING_FLAG_SIGN_OUTGOING;
-    signing.accept_unsigned_callback = accept_unsigned_callback;
+    signing.accept_unsigned_callback = generate_accept_unsigned_callback(option_enabled(Option::MAVLINK2_SIGNING_DISABLED));
 
     // if timestamp and key are all zero then we disable signing
     bool all_zero = (key.timestamp == 0);
