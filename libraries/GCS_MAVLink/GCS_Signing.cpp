@@ -125,6 +125,11 @@ static bool accept_unsigned_callback(const mavlink_status_t *status, uint32_t ms
     }
     return false;
 }
+
+static bool always_true(const mavlink_status_t *status, uint32_t msgId)
+{
+    return true;
+}
 }
 
 /*
@@ -133,8 +138,7 @@ static bool accept_unsigned_callback(const mavlink_status_t *status, uint32_t ms
 void GCS_MAVLINK::load_signing_key(void)
 {
     struct SigningKey key;
-    if (option_enabled(Option::MAVLINK2_SIGNING_DISABLED) || !signing_key_load(key))
-    {
+    if (!signing_key_load(key)) {
         return;
     }
     memcpy(signing.secret_key, key.secret_key, 32);
@@ -144,7 +148,9 @@ void GCS_MAVLINK::load_signing_key(void)
     // prevents a window for replay attacks
     signing.timestamp = key.timestamp + 60UL * 100UL * 1000UL;
     signing.flags = MAVLINK_SIGNING_FLAG_SIGN_OUTGOING;
-    signing.accept_unsigned_callback = accept_unsigned_callback;
+    signing.accept_unsigned_callback = option_enabled(Option::MAVLINK2_SIGNING_DISABLED)
+        ? always_true
+        : accept_unsigned_callback;
 
     // if timestamp and key are all zero then we disable signing
     bool all_zero = (key.timestamp == 0);
