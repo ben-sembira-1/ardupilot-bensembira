@@ -144,6 +144,8 @@ void GCS_MAVLINK::load_signing_key(void)
     signing.timestamp = key.timestamp + 60UL * 100UL * 1000UL;
     signing.flags = MAVLINK_SIGNING_FLAG_SIGN_OUTGOING;
     if (option_enabled(Option::MAVLINK2_SIGNING_DISABLED) || chan == MAVLINK_COMM_0) {
+        // Always accept channel 0 - which is assumed to be secure 
+        // (e.g., USB on ChibiOS boards)
         signing.accept_unsigned_callback = accept_unsigned_callback_accept_all;
     } else {
         signing.accept_unsigned_callback = accept_unsigned_callback;
