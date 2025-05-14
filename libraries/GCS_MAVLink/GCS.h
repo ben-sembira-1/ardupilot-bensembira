@@ -163,11 +163,6 @@ private:
     static uint32_t last_check_ms;
 };
 
-enum class Option : uint16_t
-{
-    MAVLINK2_SIGNING_DISABLED = (1U << 0),
-};
-
 ///
 /// @class	GCS_MAVLINK
 /// @brief	MAVLink transport control class
@@ -518,6 +513,10 @@ protected:
     void handle_request_data_stream(const mavlink_message_t &msg);
 
     AP_Int16 options;
+    enum class Option : uint16_t
+    {
+        MAVLINK2_SIGNING_DISABLED = (1U << 0),
+    };
     bool option_enabled(Option option) const {
         return options & static_cast<uint16_t>(option);
     }
