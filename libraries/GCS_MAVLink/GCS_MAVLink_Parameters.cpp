@@ -22,6 +22,9 @@ const struct AP_Param::GroupInfo *GCS::_chan_var_info[MAVLINK_COMM_NUM_BUFFERS];
 
 // tradition has different vehicles use different default stream rates.  This may not be the case forever, but for now we maintain this behaviour:
 
+// Unified signing options across all vehicles
+#define STANDARD_DEFAULT_STREAM_RATE_OPTIONS (SROption::MAVLINK2_SIGNING)
+
 #ifndef AP_MAV_DEFAULT_STREAM_RATE_RAW_SENS
 #if APM_BUILD_TYPE(APM_BUILD_ArduSub)
 #define AP_MAV_DEFAULT_STREAM_RATE_RAW_SENS 2
@@ -34,6 +37,7 @@ const struct AP_Param::GroupInfo *GCS::_chan_var_info[MAVLINK_COMM_NUM_BUFFERS];
 #define AP_MAV_DEFAULT_STREAM_RATE_EXTRA3 3
 #define AP_MAV_DEFAULT_STREAM_RATE_PARAMS 0
 #define AP_MAV_DEFAULT_STREAM_RATE_ADSB 0
+#define AP_MAV_DEFAULT_STREAM_RATE_OPTIONS STANDARD_DEFAULT_STREAM_RATE_OPTIONS
 #elif APM_BUILD_TYPE(APM_BUILD_AntennaTracker) || APM_BUILD_TYPE(APM_BUILD_Rover)
 #define AP_MAV_DEFAULT_STREAM_RATE_RAW_SENS 1
 #define AP_MAV_DEFAULT_STREAM_RATE_EXT_STAT 1
@@ -45,6 +49,7 @@ const struct AP_Param::GroupInfo *GCS::_chan_var_info[MAVLINK_COMM_NUM_BUFFERS];
 #define AP_MAV_DEFAULT_STREAM_RATE_EXTRA3 1
 #define AP_MAV_DEFAULT_STREAM_RATE_PARAMS 10
 #define AP_MAV_DEFAULT_STREAM_RATE_ADSB 0
+#define AP_MAV_DEFAULT_STREAM_RATE_OPTIONS STANDARD_DEFAULT_STREAM_RATE_OPTIONS
 #elif APM_BUILD_TYPE(APM_BUILD_ArduPlane)
 #define AP_MAV_DEFAULT_STREAM_RATE_RAW_SENS 1
 #define AP_MAV_DEFAULT_STREAM_RATE_EXT_STAT 1
@@ -56,6 +61,7 @@ const struct AP_Param::GroupInfo *GCS::_chan_var_info[MAVLINK_COMM_NUM_BUFFERS];
 #define AP_MAV_DEFAULT_STREAM_RATE_EXTRA3 1
 #define AP_MAV_DEFAULT_STREAM_RATE_PARAMS 10
 #define AP_MAV_DEFAULT_STREAM_RATE_ADSB 5
+#define AP_MAV_DEFAULT_STREAM_RATE_OPTIONS STANDARD_DEFAULT_STREAM_RATE_OPTIONS
 #elif APM_BUILD_COPTER_OR_HELI || APM_BUILD_TYPE(APM_BUILD_Blimp) || APM_BUILD_TYPE(APM_BUILD_Replay) || APM_BUILD_TYPE(APM_BUILD_AP_Periph)
 #define AP_MAV_DEFAULT_STREAM_RATE_RAW_SENS 0
 #define AP_MAV_DEFAULT_STREAM_RATE_EXT_STAT 0
@@ -67,6 +73,7 @@ const struct AP_Param::GroupInfo *GCS::_chan_var_info[MAVLINK_COMM_NUM_BUFFERS];
 #define AP_MAV_DEFAULT_STREAM_RATE_EXTRA3 0
 #define AP_MAV_DEFAULT_STREAM_RATE_PARAMS 0
 #define AP_MAV_DEFAULT_STREAM_RATE_ADSB 0
+#define AP_MAV_DEFAULT_STREAM_RATE_OPTIONS STANDARD_DEFAULT_STREAM_RATE_OPTIONS
 #elif APM_BUILD_TYPE(APM_BUILD_UNKNOWN)
 #define AP_MAV_DEFAULT_STREAM_RATE_RAW_SENS 0
 #define AP_MAV_DEFAULT_STREAM_RATE_EXT_STAT 0
@@ -78,6 +85,7 @@ const struct AP_Param::GroupInfo *GCS::_chan_var_info[MAVLINK_COMM_NUM_BUFFERS];
 #define AP_MAV_DEFAULT_STREAM_RATE_EXTRA3 0
 #define AP_MAV_DEFAULT_STREAM_RATE_PARAMS 0
 #define AP_MAV_DEFAULT_STREAM_RATE_ADSB 0
+#define AP_MAV_DEFAULT_STREAM_RATE_OPTIONS STANDARD_DEFAULT_STREAM_RATE_OPTIONS
 #else
 #error Need to set streamrates
 #endif  // APM_BUILD_TYPE
@@ -202,6 +210,18 @@ const AP_Param::GroupInfo GCS_MAVLINK::var_info[] = {
     // @RebootRequired: True
     // @User: Advanced
     AP_GROUPINFO("_ADSB",   10, GCS_MAVLINK, streamRates[GCS_MAVLINK::STREAM_ADSB], DRATE(GCS_MAVLINK::STREAM_ADSB)),
+
+    // ------------
+    // IMPORTANT: Add new stream rates *before* the _OPTIONS parameter.
+    // ------------
+
+    // @Param: _OPTIONS
+    // @DisplayName: Bitmask for configuring this telemetry channel
+    // @Description: Bitmask for configuring this telemetry channel. For having effect on all channels, set the relevant mask in all SRx_OPTIONS parameters. Keep in mind that part of the flags may require a reboot to take action.
+    // @RebootRequired: True
+    // @User: Standard
+    // @Bitmask: 0:Enable MavLink2 signing (Reboot required)
+    AP_GROUPINFO("_OPTIONS",   11, GCS_MAVLINK, options, float(AP_MAV_DEFAULT_STREAM_RATE_OPTIONS)),
     AP_GROUPEND
 };
 #undef DRATE

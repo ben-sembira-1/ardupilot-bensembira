@@ -163,6 +163,12 @@ private:
     static uint32_t last_check_ms;
 };
 
+enum class SROption : int16_t
+{
+    None = 0,
+    MAVLINK2_SIGNING = (1U << 0),
+};
+
 ///
 /// @class	GCS_MAVLINK
 /// @brief	MAVLink transport control class
@@ -511,6 +517,11 @@ protected:
 
     virtual bool persist_streamrates() const { return false; }
     void handle_request_data_stream(const mavlink_message_t &msg);
+
+    AP_Int16 options;
+    bool option_enabled(SROption option) const {
+        return options & static_cast<int16_t>(option);
+    }
 
     virtual void handle_command_ack(const mavlink_message_t &msg);
     void handle_set_mode(const mavlink_message_t &msg);
