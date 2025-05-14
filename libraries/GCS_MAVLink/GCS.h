@@ -513,8 +513,7 @@ protected:
     void handle_request_data_stream(const mavlink_message_t &msg);
 
     AP_Int16 options;
-    enum class Option : uint16_t
-    {
+    enum class Option : uint16_t {
         MAVLINK2_SIGNING_DISABLED = (1U << 0),
     };
     bool option_enabled(Option option) const {
